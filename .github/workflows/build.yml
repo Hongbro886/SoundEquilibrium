@@ -1,0 +1,53 @@
+name: Build AudioControl.exe
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14'
+        
+    - name: Install uv
+      run: pip install uv
+      
+    - name: Install dependencies
+      run: uv sync
+      
+    - name: Install PyInstaller
+      run: uv add pyinstaller --dev
+      
+    - name: Build executable
+      run: uv run pyinstaller AudioControl.spec
+        
+    - name: Create release package
+      run: |
+        mkdir -p release
+        cp dist/AudioControl.exe release/
+        cp config.json release/
+        Compress-Archive -Path release/* -DestinationPath AudioControl.zip
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AudioControl
+        path: AudioControl.zip
+        
+    - name: Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: AudioControl.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
