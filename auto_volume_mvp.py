@@ -10,13 +10,13 @@ import pyaudiowpatch as pyaudio
 from pycaw.pycaw import AudioUtilities
 
 # 目标响度。数值越接近 0，声音越大。
-TARGET_DBFS = -24.0
+TARGET_DBFS = -25.0
 
 # 低于这个值认为是静音，不自动把音量拉高。
 SILENCE_DBFS = -55.0
 
 # 允许的误差范围，避免音量频繁来回调整。
-DEAD_ZONE_DB = 2.5
+DEAD_ZONE_DB = 1.0
 
 # 每次最多调整 5% 的系统音量。
 MAX_STEP = 0.05
