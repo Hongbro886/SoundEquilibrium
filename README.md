@@ -1,1 +1,0 @@
-uv add pyaudiowpatch pycaw comtypes numpy
