@@ -9,4 +9,6 @@ dependencies = [
     "numpy>=2.4.6",
     "pyaudiowpatch>=0.2.12.8",
     "pycaw>=20251023",
+    "pyside6>=6.11.1",
+    "pyside6-fluent-widgets>=1.11.2",
 ]
