@@ -1,10 +1,4 @@
-"""
-安装依赖：
-pip install pyaudiowpatch pycaw comtypes numpy
-"""
-
 import time
-
 import numpy as np
 import pyaudiowpatch as pyaudio
 from pycaw.pycaw import AudioUtilities
@@ -18,15 +12,14 @@ SILENCE_DBFS = -55.0
 # 允许的误差范围，避免音量频繁来回调整。
 DEAD_ZONE_DB = 1.0
 
-# 每次最多调整 5% 的系统音量。
-MAX_STEP = 0.05
+MAX_STEP = 0.03
 
 # 系统音量调整范围。
-MIN_VOLUME = 0.05
+MIN_VOLUME = 0.03
 MAX_VOLUME = 1.0
 
 # 每次分析最近多少毫秒的声音。
-CHUNK_MS = 2000
+CHUNK_MS = 500
 # 指数滑动平均的平滑系数，越小越平滑。
 # 非对称设计：响度上升时用较大 α 快速响应，下降时用较小 α 缓慢衰减。
 EMA_ALPHA_UP = 0.3    # 响度变大时的 α，快速跟进
