@@ -4,12 +4,10 @@ pip install pyaudiowpatch pycaw comtypes numpy
 """
 
 import time
-from ctypes import POINTER, cast
 
 import numpy as np
 import pyaudiowpatch as pyaudio
-from comtypes import CLSCTX_ALL
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+from pycaw.pycaw import AudioUtilities
 
 # 目标响度。数值越接近 0，声音越大。
 TARGET_DBFS = -18.0
@@ -60,8 +58,7 @@ def get_volume_control():
     # 获取 Windows 主音量控制接口。
     debug("步骤 5：获取 Windows 默认扬声器的主音量控制接口")
     speakers = AudioUtilities.GetSpeakers()
-    interface = speakers.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    return cast(interface, POINTER(IAudioEndpointVolume))
+    return speakers.EndpointVolume
 
 
 def dbfs(samples):
