@@ -10,23 +10,27 @@ import pyaudiowpatch as pyaudio
 from pycaw.pycaw import AudioUtilities
 
 # 目标响度。数值越接近 0，声音越大。
-TARGET_DBFS = -18.0
+TARGET_DBFS = -24.0
 
 # 低于这个值认为是静音，不自动把音量拉高。
 SILENCE_DBFS = -55.0
 
 # 允许的误差范围，避免音量频繁来回调整。
-DEAD_ZONE_DB = 2.0
+DEAD_ZONE_DB = 2.5
 
-# 每次最多调整 3% 的系统音量。
-MAX_STEP = 0.03
+# 每次最多调整 5% 的系统音量。
+MAX_STEP = 0.05
 
 # 系统音量调整范围。
 MIN_VOLUME = 0.05
 MAX_VOLUME = 1.0
 
 # 每次分析最近多少毫秒的声音。
-CHUNK_MS = 500
+CHUNK_MS = 2000
+# 指数滑动平均的平滑系数，越小越平滑。
+# 非对称设计：响度上升时用较大 α 快速响应，下降时用较小 α 缓慢衰减。
+EMA_ALPHA_UP = 0.3    # 响度变大时的 α，快速跟进
+EMA_ALPHA_DOWN = 0.05  # 响度变小时的 α，缓慢衰减
 
 # 是否打印中文调试信息。
 DEBUG = True
@@ -70,16 +74,16 @@ def dbfs(samples):
     return 20 * np.log10(rms)
 
 
-def adjust_volume(volume, current_dbfs):
-    debug(f"步骤 10：当前响度 = {current_dbfs:.1f} dBFS，目标响度 = {TARGET_DBFS:.1f} dBFS")
+def adjust_volume(volume, raw_dbfs, ema_dbfs):
+    debug(f"步骤 10：原始响度 = {raw_dbfs:.1f} dBFS，平滑响度 = {ema_dbfs:.1f} dBFS，目标响度 = {TARGET_DBFS:.1f} dBFS")
 
     # 没有声音时不调整，避免越调越大。
-    if current_dbfs < SILENCE_DBFS:
+    if ema_dbfs < SILENCE_DBFS:
         debug(f"步骤 11：低于静音阈值 {SILENCE_DBFS:.1f} dBFS，跳过调整")
         return
 
     # error > 0 表示当前太小，需要调大；error < 0 表示当前太大，需要调小。
-    error = TARGET_DBFS - current_dbfs
+    error = TARGET_DBFS - ema_dbfs
     if abs(error) < DEAD_ZONE_DB:
         debug(f"步骤 11：误差 {error:.1f} dB 在允许范围内，跳过调整")
         return
@@ -123,13 +127,29 @@ def main():
 
     debug(f"监听中：{device['name']}")
 
+    ema_dbfs = None
+
     try:
         while True:
             # 读取最终输出的混音音频，计算响度，然后调整系统主音量。
             debug("步骤 8：读取最近一小段最终输出音频")
             data = stream.read(frames, exception_on_overflow=False)
             samples = np.frombuffer(data, dtype=np.float32)
-            adjust_volume(volume, dbfs(samples))
+
+            # loopback 捕获的是系统音量控制之前的应用输出信号，
+            # 需要乘以当前系统音量来估算用户实际听到的响度。
+            current_vol = volume.GetMasterVolumeLevelScalar()
+            actual_samples = samples * current_vol
+            raw_dbfs = dbfs(actual_samples)
+
+            # 用非对称 EMA 平滑：响度上升快跟、下降慢衰减，抑制短暂安静的干扰。
+            if ema_dbfs is None:
+                ema_dbfs = raw_dbfs
+            else:
+                alpha = EMA_ALPHA_UP if raw_dbfs > ema_dbfs else EMA_ALPHA_DOWN
+                ema_dbfs = alpha * raw_dbfs + (1 - alpha) * ema_dbfs
+
+            adjust_volume(volume, raw_dbfs, ema_dbfs)
             time.sleep(0.05)
     finally:
         debug("退出：关闭音频流并释放资源")
