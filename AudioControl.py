@@ -115,6 +115,7 @@ class AudioWorker(QThread):
 
             self.status_changed.emit(f"监听中: {device['name']}")
             ema_dbfs = None
+            last_adjust_time = 0.0
 
             while self._running:
                 debug("步骤 8：读取最近一小段最终输出音频")
@@ -131,7 +132,10 @@ class AudioWorker(QThread):
                     alpha = config.EMA_ALPHA_UP if raw_dbfs > ema_dbfs else config.EMA_ALPHA_DOWN
                     ema_dbfs = alpha * raw_dbfs + (1 - alpha) * ema_dbfs
 
-                adjust_volume(volume, raw_dbfs, ema_dbfs)
+                now = time.monotonic()
+                if now - last_adjust_time >= config.ADJUST_INTERVAL_S:
+                    adjust_volume(volume, raw_dbfs, ema_dbfs)
+                    last_adjust_time = now
 
                 self.volume_changed.emit(current_vol)
                 self.raw_loudness_changed.emit(raw_dbfs)
