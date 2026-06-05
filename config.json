@@ -9,5 +9,6 @@
   "EMA_ALPHA_UP": 0.3,
   "EMA_ALPHA_DOWN": 0.05,
   "ADJUST_INTERVAL_S": 1.0,
-  "DEBUG": true
+  "DEBUG": true,
+  "START_UP": false
 }

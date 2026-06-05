@@ -1,19 +1,27 @@
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import (
-    PushButton, BodyLabel, setTheme, Theme, CardWidget, TitleLabel, SubtitleLabel
+    FluentWindow,
+    NavigationItemPosition,
+    FluentIcon,
+    TitleLabel,
+    SubtitleLabel,
+    BodyLabel,
+    CardWidget,
+    SwitchButton,
+    PushButton,
+    setTheme,
+    Theme,
 )
 
 from AudioControl import AudioWorker
 
 
-class MainWindow(QWidget):
+class HomePage(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("统一音量控制器")
-        self.resize(500, 350)
-
+        self.setObjectName("homepage")
         self.worker = None
 
         layout = QVBoxLayout(self)
@@ -36,11 +44,12 @@ class MainWindow(QWidget):
         btn_layout = QHBoxLayout()
         self.start_btn = PushButton("启动")
         self.stop_btn = PushButton("停止")
+        self.set_start_up_btn = PushButton("设置开机自启动")
         self.stop_btn.setEnabled(False)
 
         self.start_btn.clicked.connect(self.start_control)
         self.stop_btn.clicked.connect(self.stop_control)
-
+        
         btn_layout.addWidget(self.start_btn)
         btn_layout.addWidget(self.stop_btn)
         layout.addLayout(btn_layout)
@@ -88,6 +97,20 @@ class MainWindow(QWidget):
     def closeEvent(self, event):
         self.stop_control()
         event.accept()
+
+class MainWindow(FluentWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("统一音量控制器")
+        self.resize(500, 350)
+
+        self.homepage = HomePage()
+        self.addSubInterface(
+            self.homepage,
+            FluentIcon.HOME,
+            "主页"
+        )
 
 
 def main():
