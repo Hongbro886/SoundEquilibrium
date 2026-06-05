@@ -71,7 +71,7 @@ def dbfs(samples):
 def adjust_volume(volume, raw_dbfs, ema_dbfs):
     debug(f"步骤 10：原始响度 = {raw_dbfs:.1f} dBFS，平滑响度 = {ema_dbfs:.1f} dBFS，目标响度 = {config.TARGET_DBFS:.1f} dBFS")
 
-    if ema_dbfs < config.SILENCE_DBFS:
+    if raw_dbfs < config.SILENCE_DBFS:
         debug(f"步骤 11：低于静音阈值 {config.SILENCE_DBFS:.1f} dBFS，跳过调整")
         return
 
