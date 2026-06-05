@@ -23,6 +23,7 @@ class HomePage(QWidget):
 
         self.setObjectName("homepage")
         self.worker = None
+        self._closing = False
 
         layout = QVBoxLayout(self)
 
@@ -63,6 +64,7 @@ class HomePage(QWidget):
         self.worker.loudness_changed.connect(self.on_loudness_changed)
         self.worker.status_changed.connect(self.on_status_changed)
         self.worker.error_occurred.connect(self.on_error)
+        self.worker.finished.connect(self.on_worker_finished)
         self.worker.start()
 
         self.start_btn.setEnabled(False)
@@ -71,11 +73,17 @@ class HomePage(QWidget):
     def stop_control(self):
         if self.worker:
             self.worker.stop()
-            self.worker.wait()
-            self.worker = None
+            self.status_label.setText("状态: 正在停止...")
+            self.stop_btn.setEnabled(False)
 
+    def on_worker_finished(self):
+        self.worker = None
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
+
+        if self._closing:
+            self.window().close()
+
 
     def on_volume_changed(self, vol):
         self.volume_label.setText(f"当前音量: {vol:.2f}")
@@ -95,7 +103,12 @@ class HomePage(QWidget):
         self.stop_btn.setEnabled(False)
 
     def closeEvent(self, event):
-        self.stop_control()
+        if self.worker and self.worker.isRunning():
+            self._closing = True
+            self.stop_control()
+            event.ignore()
+            return
+
         event.accept()
 
 class MainWindow(FluentWindow):
@@ -111,6 +124,15 @@ class MainWindow(FluentWindow):
             FluentIcon.HOME,
             "主页"
         )
+
+    def closeEvent(self, event):
+        if self.homepage.worker and self.homepage.worker.isRunning():
+            self.homepage._closing = True
+            self.homepage.stop_control()
+            event.ignore()
+            return
+
+        event.accept()
 
 
 def main():

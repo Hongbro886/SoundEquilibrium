@@ -1,5 +1,6 @@
 import json
 import sys
+import threading
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -104,6 +105,8 @@ class AudioWorker(QThread):
         self._running = True
 
     def run(self):
+        audio = None
+        stream = None
         try:
             self.status_changed.emit("正在初始化音频设备...")
             audio = pyaudio.PyAudio()
@@ -113,7 +116,23 @@ class AudioWorker(QThread):
             rate = int(device["defaultSampleRate"])
             channels = int(device["maxInputChannels"])
             frames = int(rate * config.CHUNK_MS / 1000)
+            read_frames = max(1, int(rate * min(config.CHUNK_MS, 50) / 1000))
             debug(f"步骤 6：采样率={rate}，声道数={channels}，每次读取帧数={frames}")
+
+            pending_chunks = []
+            pending_frames = 0
+            pending_lock = threading.Lock()
+
+            def on_audio_data(in_data, frame_count, time_info, status):
+                nonlocal pending_frames
+                if not self._running:
+                    return (None, pyaudio.paComplete)
+
+                with pending_lock:
+                    pending_chunks.append(in_data)
+                    pending_frames += frame_count
+
+                return (None, pyaudio.paContinue)
 
             debug("步骤 7：打开 loopback 音频流")
             stream = audio.open(
@@ -122,17 +141,30 @@ class AudioWorker(QThread):
                 rate=rate,
                 input=True,
                 input_device_index=device["index"],
-                frames_per_buffer=frames,
+                frames_per_buffer=read_frames,
+                stream_callback=on_audio_data,
             )
+            stream.start_stream()
 
             self.status_changed.emit(f"监听中: {device['name']}")
             ema_dbfs = None
             last_adjust_time = 0.0
+            debug("步骤 8：开始读取最终输出音频")
 
             while self._running:
-                debug("步骤 8：读取最近一小段最终输出音频")
-                data = stream.read(frames, exception_on_overflow=False)
-                samples = np.frombuffer(data, dtype=np.float32)
+                with pending_lock:
+                    if pending_frames < frames:
+                        chunks = None
+                    else:
+                        chunks = pending_chunks[:]
+                        pending_chunks.clear()
+                        pending_frames = 0
+
+                if chunks is None:
+                    time.sleep(0.05)
+                    continue
+
+                samples = np.frombuffer(b"".join(chunks), dtype=np.float32)
 
                 current_vol = volume.GetMasterVolumeLevelScalar()
                 actual_samples = samples * current_vol
@@ -154,14 +186,30 @@ class AudioWorker(QThread):
                 self.loudness_changed.emit(ema_dbfs)
                 time.sleep(0.05)
 
-            debug("退出：关闭音频流并释放资源")
-            stream.stop_stream()
-            stream.close()
-            audio.terminate()
-            self.status_changed.emit("已停止")
         except Exception as e:
-            self.error_occurred.emit(str(e))
-            self.status_changed.emit("发生错误")
+            if self._running:
+                self.error_occurred.emit(str(e))
+                self.status_changed.emit("发生错误")
+        finally:
+            debug("退出：关闭音频流并释放资源")
+            if stream:
+                try:
+                    stream.stop_stream()
+                except Exception:
+                    pass
+
+                try:
+                    stream.close()
+                except Exception:
+                    pass
+
+            if audio:
+                try:
+                    audio.terminate()
+                except Exception:
+                    pass
+
+            self.status_changed.emit("已停止")
 
     def stop(self):
         self._running = False
