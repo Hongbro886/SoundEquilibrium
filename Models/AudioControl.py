@@ -1,36 +1,14 @@
-import json
-import sys
 import threading
 import time
-from pathlib import Path
-from types import SimpleNamespace
-
 import numpy as np
 import pyaudiowpatch as pyaudio
 from pycaw.pycaw import AudioUtilities
 from PySide6.QtCore import QThread, Signal
 
 
-def get_app_dir() -> Path:
-    """Get application directory, works both in development and when frozen by PyInstaller."""
-    if getattr(sys, 'frozen', False):
-        # Running as compiled executable
-        return Path(sys.executable).parent
-    else:
-        # Running as script
-        return Path(__file__).parent
+import Models.Configer
 
-
-CONFIG_PATH = get_app_dir() /".."/ "config.json"
-
-
-def load_config():
-    with open(CONFIG_PATH, encoding="utf-8") as f:
-        data = json.load(f)
-    return SimpleNamespace(**data)
-
-
-config = load_config()
+config = Models.Configer.load_config()
 
 
 def debug(message):

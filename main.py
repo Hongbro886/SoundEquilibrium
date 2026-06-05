@@ -12,14 +12,51 @@ from qfluentwidgets import (
     PushButton,
     setTheme,
     Theme,
+    SettingCardGroup,
+    SwitchSettingCard
 )
 
 from Models.AudioControl import AudioWorker
+import Models.Configer
+import Models.System
 
 class SettingsPage(QWidget):
     def __init__(self):
         super().__init__()
         self.setObjectName("settingspage")
+
+        self.layout = QVBoxLayout(self)
+
+        self.general_group = SettingCardGroup("常规", self)
+
+        config = Models.Configer.load_config()
+
+        self.auto_start_card = SwitchSettingCard(
+            FluentIcon.POWER_BUTTON,
+            "开机自启动",
+            "登录时启动应用",
+            parent=self.general_group,
+        )
+
+        self.auto_start_card.setChecked(config.START_UP)
+
+        self.general_group.addSettingCard(self.auto_start_card)
+
+        self.layout.addWidget(self.general_group)
+        self.layout.addStretch(1)
+
+        self.auto_start_card.checkedChanged.connect(self.on_auto_start_change)
+    def on_auto_start_change(self,checked:bool):
+        if checked:
+            Models.System.create_startup_shortcut()
+        else:
+            Models.System.remove_startup_shortcut()
+        config = Models.Configer.load_config()
+        config.START_UP = checked
+        Models.Configer.save_config(config=config)
+
+        
+
         
 
 class HomePage(QWidget):
