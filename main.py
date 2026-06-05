@@ -16,6 +16,10 @@ from qfluentwidgets import (
 
 from AudioControl import AudioWorker
 
+class SettingsPage(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("settingspage")
 
 class HomePage(QWidget):
     def __init__(self):
@@ -119,10 +123,18 @@ class MainWindow(FluentWindow):
         self.resize(500, 350)
 
         self.homepage = HomePage()
+        self.settingspage = SettingsPage()
         self.addSubInterface(
             self.homepage,
             FluentIcon.HOME,
             "主页"
+        )
+        self.addSubInterface(
+            self.settingspage,
+            FluentIcon.SETTING,
+            "设置",
+            position=NavigationItemPosition.BOTTOM
+
         )
 
     def closeEvent(self, event):
