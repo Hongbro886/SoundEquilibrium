@@ -21,7 +21,7 @@ def get_app_dir() -> Path:
         return Path(__file__).parent
 
 
-CONFIG_PATH = get_app_dir() / "config.json"
+CONFIG_PATH = get_app_dir() /".."/ "config.json"
 
 
 def load_config():

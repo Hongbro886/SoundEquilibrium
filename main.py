@@ -14,12 +14,13 @@ from qfluentwidgets import (
     Theme,
 )
 
-from AudioControl import AudioWorker
+from Models.AudioControl import AudioWorker
 
 class SettingsPage(QWidget):
     def __init__(self):
         super().__init__()
         self.setObjectName("settingspage")
+        
 
 class HomePage(QWidget):
     def __init__(self):
