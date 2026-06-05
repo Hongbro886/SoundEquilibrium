@@ -2,7 +2,7 @@ import Models.System
 from types import SimpleNamespace
 import json
 
-CONFIG_PATH = Models.System.get_app_dir() /".."/ "config.json"
+CONFIG_PATH = Models.System.get_app_dir() / "config.json"
 
 
 def load_config():

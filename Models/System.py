@@ -9,7 +9,7 @@ def get_app_dir() -> Path:
         return Path(sys.executable).parent
     else:
         # Running as script
-        return Path(__file__).parent
+        return Path(__file__).parent.parent
 
 def create_startup_shortcut():
     startup_dir = Path.home() / r"AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
