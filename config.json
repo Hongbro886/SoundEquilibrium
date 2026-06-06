@@ -1,7 +1,7 @@
 {
   "TARGET_DBFS": -25.5,
   "SILENCE_DBFS": -55.0,
-  "DEAD_ZONE_DB": 2.0,
+  "DEAD_ZONE_DB": 1.4,
   "MAX_STEP": 0.03,
   "MIN_VOLUME": 0.03,
   "MAX_VOLUME": 0.4,
@@ -10,5 +10,6 @@
   "EMA_ALPHA_DOWN": 0.05,
   "ADJUST_INTERVAL_S": 1.0,
   "DEBUG": true,
-  "START_UP": false
+  "START_UP": false,
+  "AUTO_START": true
 }
