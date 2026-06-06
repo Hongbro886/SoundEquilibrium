@@ -301,7 +301,7 @@ class MainWindow(FluentWindow):
 
 def get_icon_path():
     if getattr(sys, 'frozen', False):
-        base = Path(sys.executable).parent
+        base = Path(sys._MEIPASS)
     else:
         base = Path(__file__).parent
     return str(base / "icon.ico")
