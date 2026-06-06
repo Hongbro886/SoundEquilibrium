@@ -13,7 +13,7 @@ def get_app_dir() -> Path:
 
 def create_startup_shortcut():
     startup_dir = Path.home() / r"AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
-    shortcut_path = startup_dir / "统一音量控制器.lnk"
+    shortcut_path = startup_dir / "SoundEquilibrium.lnk"
 
     shell = win32com.client.Dispatch("WScript.Shell")
     shortcut = shell.CreateShortcut(str(shortcut_path))
@@ -37,7 +37,7 @@ def create_startup_shortcut():
     shortcut.save()
 
 def remove_startup_shortcut():
-    shortcut_path = Path.home() / r"AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\统一音量控制器.lnk"
+    shortcut_path = Path.home() / r"AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\SoundEquilibrium.lnk"
 
     if shortcut_path.exists():
         shortcut_path.unlink()

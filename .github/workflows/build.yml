@@ -1,4 +1,4 @@
-name: Build AudioControl.exe
+name: Build SoundEquilibrium.exe
 
 on:
   push:
@@ -33,20 +33,20 @@ jobs:
       run: uv add pyinstaller --dev
       
     - name: Build executable
-      run: uv run pyinstaller AudioControl.spec
+      run: uv run pyinstaller SoundEquilibrium.spec
         
     - name: Create release package
       run: |
         mkdir -p release
-        cp dist/AudioControl.exe release/
+        cp dist/SoundEquilibrium.exe release/
         cp config.json release/
-        Compress-Archive -Path release/* -DestinationPath AudioControl.zip
+        Compress-Archive -Path release/* -DestinationPath SoundEquilibrium.zip
         
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: AudioControl
-        path: AudioControl.zip
+        name: SoundEquilibrium
+        path: SoundEquilibrium.zip
         
     - name: Get version from tag
       if: startsWith(github.ref, 'refs/tags/')
@@ -58,7 +58,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-        files: AudioControl.zip
+        files: SoundEquilibrium.zip
         body_path: .github/release-notes/${{ steps.version.outputs.VERSION }}.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
