@@ -11,5 +11,5 @@
   "ADJUST_INTERVAL_S": 1.0,
   "DEBUG": true,
   "START_UP": false,
-  "AUTO_START": true
+  "AUTO_START": false
 }

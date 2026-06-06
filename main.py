@@ -195,7 +195,7 @@ class MainWindow(FluentWindow):
         super().__init__()
 
         self.setWindowTitle("统一音量控制器")
-        self.resize(500, 350)
+        self.resize(600, 450)
 
         self.homepage = HomePage()
         self.settingspage = SettingsPage()
